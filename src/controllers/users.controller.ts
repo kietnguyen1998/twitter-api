@@ -59,3 +59,7 @@ export const verifyEmailController = async (req: Request<ParamsDictionary, any, 
     result
   })
 }
+export const resendVerifyEmailController = async (req: Request<ParamsDictionary, any, LogoutReqBody>, res: Response) => {
+  
+
+}
