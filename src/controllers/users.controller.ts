@@ -18,6 +18,7 @@ import { USERS_MESSAGES } from '~/constants/messages'
 import { ObjectId } from 'mongodb'
 import httpStatus from '~/constants/httpStatus'
 import { UserVerifyStatus } from '~/constants/enum'
+import { pick } from 'lodash'
 
 export const registerController = async (
   req: Request<ParamsDictionary, any, RegisterRequestBody>,
@@ -140,7 +141,8 @@ export const updateMeController = async (
   next: NextFunction
 ) => {
   const { user_id } = req.decoded_authorization as TokenPayload
-  const { body } = req
+  const body = req.body
+  console.log('body', body)
   const user = await usersService.updateMe(user_id, body)
   return res.json({
     message: USERS_MESSAGES.UPDATE_ME_SUCCESS,
