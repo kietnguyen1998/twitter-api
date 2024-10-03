@@ -1,3 +1,4 @@
+import { ParamsDictionary } from 'express-serve-static-core'
 import { JwtPayload } from 'jsonwebtoken'
 import { TokenType } from '~/constants/enum'
 
@@ -30,8 +31,11 @@ export interface ForgotPasswordReqBody {
 export interface VerifyForgotPasswordReqBody {
   forgot_password_token: string
 }
-export interface GetProfileReqParams {
+export interface GetProfileReqParams extends ParamsDictionary {
   username: string
+}
+export interface UnfollowReqParams extends ParamsDictionary {
+  user_id: string
 }
 export interface ResetPasswordReqBody {
   confirm_password: string
