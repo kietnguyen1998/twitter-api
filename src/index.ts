@@ -7,6 +7,7 @@ import { initFolder } from './utils/file'
 import { config } from 'dotenv'
 import argv from 'minimist'
 import { UPLOAD_IMAGE_DIR } from './constants/dir'
+import staticRouter from './routes/statisc.routes'
 config()
 databaseService.connect()
 
@@ -20,7 +21,8 @@ console.log('options', options.development)
 app.use(express.json())
 app.use('/users', usersRouter)
 app.use('/media', mediaRouter)
-app.use('/media', express.static(UPLOAD_IMAGE_DIR))
+// app.use('/media', express.static(UPLOAD_IMAGE_DIR))
+app.use('/static', staticRouter)
 app.use(dafaultErrorHandler)
 
 app.listen(port, () => {
