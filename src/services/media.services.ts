@@ -10,6 +10,7 @@ class MediaService {
     const file = await handleUploadImage(req)
     const newName = getNameFromFullName(file.newFilename)
     const newPath = path.resolve(UPLOAD_IMAGE_DIR, `${newName}.jpg`)
+    sharp.cache(false)
     const info = await sharp(file.filepath).jpeg().toFile(newPath)
     fs.unlinkSync(file.filepath)
     return isProduction
