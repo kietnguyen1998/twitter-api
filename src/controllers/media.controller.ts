@@ -6,7 +6,7 @@ import mediaService from '~/services/media.services'
 console.log('path', path.resolve('uploads'))
 
 export const uploadImageController = async (req: Request, res: Response, next: NextFunction) => {
-  const url = await mediaService.handleUploadImage(req)
+  const url = await mediaService.uploadImage(req)
   return res.json({
     result: url,
     message: USERS_MESSAGES.UPLOAD_SUCCESS
