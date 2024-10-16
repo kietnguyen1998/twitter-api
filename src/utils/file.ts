@@ -46,7 +46,7 @@ export const handleUploadVideo = async (req: Request) => {
   const form = formidable({
     uploadDir: UPLOAD_VIDEO_DIR,
     maxFiles: 1,
-    maxFileSize: 100 * 1024 * 1024,
+    maxFileSize: 200 * 1024 * 1024,
     filter: function ({ name, originalFilename, mimetype }) {
       const valid = name === 'video' && Boolean(mimetype?.includes('mp4') || mimetype?.includes('quicktime'))
       if (!valid) {

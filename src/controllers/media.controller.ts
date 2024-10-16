@@ -5,7 +5,6 @@ import httpStatus from '~/constants/httpStatus'
 import { USERS_MESSAGES } from '~/constants/messages'
 import mediaService from '~/services/media.services'
 import fs from 'fs'
-
 export const uploadImageController = async (req: Request, res: Response, next: NextFunction) => {
   const url = await mediaService.uploadImage(req)
   return res.json({
@@ -29,7 +28,8 @@ export const serveImageController = (req: Request, res: Response, next: NextFunc
     }
   })
 }
-export const serveVideoStreamController = (req: Request, res: Response, next: NextFunction) => {
+export const serveVideoStreamController = async (req: Request, res: Response, next: NextFunction) => {
+  const mime = (await import('mime')).default
   const range = req.headers.range
   if (!range) {
     return res.status(httpStatus.BAD_REQUEST).send('Require Range Header')
@@ -52,4 +52,32 @@ export const serveVideoStreamController = (req: Request, res: Response, next: Ne
   // THường đây sẽ là chunkSize, ngoại trừ đoạn cuối cùng
   const contentLength = end - start + 1
   const contentType = mime.getType(videoPath) || 'video/*'
+
+  /**
+   * Format của header Content-Range: bytes <start>-<end>/<videoSize>
+   * Ví dụ: Content-Range: bytes 1048576-3145727/3145728
+   * Yêu cầu là `end` phải luôn luôn nhỏ hơn `videoSize`
+   * ❌ 'Content-Range': 'bytes 0-100/100'
+   * ✅ 'Content-Range': 'bytes 0-99/100'
+   *
+   * Còn Content-Length sẽ là end - start + 1. Đại diện cho khoản cách.
+   * Để dễ hình dung, mọi người tưởng tượng từ số 0 đến số 10 thì ta có 11 số.
+   * byte cũng tương tự, nếu start = 0, end = 10 thì ta có 11 byte.
+   * Công thức là end - start + 1
+   *
+   * ChunkSize = 50
+   * videoSize = 100
+   * |0----------------50|51----------------99|100 (end)
+   * stream 1: start = 0, end = 50, contentLength = 51
+   * stream 2: start = 51, end = 99, contentLength = 49
+   */
+  const headers = {
+    'Content-Range': `bytes ${start}-${end}/${videoSize}`,
+    'Accept-Ranges': 'bytes',
+    'Content-Length': contentLength,
+    'Content-Type': contentType
+  }
+  res.writeHead(httpStatus.PARTIAL_CONTENT, headers)
+  const videoSteams = fs.createReadStream(videoPath, { start, end })
+  videoSteams.pipe(res)
 }
