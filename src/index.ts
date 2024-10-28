@@ -11,6 +11,7 @@ import staticRouter from './routes/statisc.routes'
 config()
 databaseService.connect().then(() => {
   databaseService.indexUsers()
+  databaseService.indexRefreshToken()
 })
 
 const app = express()
