@@ -9,7 +9,9 @@ import argv from 'minimist'
 import { UPLOAD_IMAGE_DIR } from './constants/dir'
 import staticRouter from './routes/statisc.routes'
 config()
-databaseService.connect()
+databaseService.connect().then(() => {
+  databaseService.indexUsers()
+})
 
 const app = express()
 const port = process.env.PORT || 4000
