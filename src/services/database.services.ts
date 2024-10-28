@@ -22,14 +22,20 @@ class DatabaseServices {
       console.log('err', err)
     }
   }
-  indexUsers() {
-    this.users.createIndex({ email: 1, password: 1 })
-    this.users.createIndex({ email: 1 }, { unique: true })
-    this.users.createIndex({ username: 1 }, { unique: true })
+  async indexUsers() {
+    const exist = await this.users.indexExists(['email_1_password_1', 'username_1', 'email_1'])
+    if (!exist) {
+      this.users.createIndex({ email: 1, password: 1 })
+      this.users.createIndex({ email: 1 }, { unique: true })
+      this.users.createIndex({ username: 1 }, { unique: true })
+    }
   }
-  indexRefreshToken() {
-    this.refreshToken.createIndex({ token: 1 })
-    this.refreshToken.createIndex({ exp: 1 }, { expireAfterSeconds: 0 })
+  async indexRefreshToken() {
+    const exist = await this.refreshToken.indexExists(['exp_1', 'token_1'])
+    if (!exist) {
+      this.refreshToken.createIndex({ token: 1 })
+      this.refreshToken.createIndex({ exp: 1 }, { expireAfterSeconds: 0 })
+    }
   }
   indexVideoStatus() {}
   get users(): Collection<User> {
