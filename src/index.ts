@@ -8,6 +8,7 @@ import { config } from 'dotenv'
 import argv from 'minimist'
 import { UPLOAD_IMAGE_DIR } from './constants/dir'
 import staticRouter from './routes/statisc.routes'
+import tweetsRouter from './routes/tweets.routes'
 config()
 databaseService.connect().then(() => {
   databaseService.indexUsers()
@@ -26,6 +27,7 @@ app.use('/users', usersRouter)
 app.use('/media', mediaRouter)
 // app.use('/media', express.static(UPLOAD_IMAGE_DIR))
 app.use('/static', staticRouter)
+app.use('/tweets', tweetsRouter)
 app.use(dafaultErrorHandler)
 
 app.listen(port, () => {
