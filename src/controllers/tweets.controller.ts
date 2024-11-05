@@ -1,6 +1,5 @@
-import { Request } from 'express'
+import { Request, Response } from 'express'
 import { ParamsDictionary } from 'express-serve-static-core'
-import { TWEETS_MESSAGES } from '~/constants/messages'
 import { TweetRequestBody } from '~/models/requests/Tweets.request'
 import { TokenPayload } from '~/models/requests/User.request'
 import tweetService from '~/services/tweets.services'
