@@ -5,10 +5,12 @@ import { TWEETS_MESSAGES } from '~/constants/messages'
 import { numberEnumToArray } from '~/utils/common'
 import { validate } from '~/utils/validation'
 import { isEmpty } from 'lodash'
+import databaseService from '~/services/database.services'
+import { ErrorWithStatus } from '~/models/Errors'
+import httpStatus from '~/constants/httpStatus'
 const tweetType = numberEnumToArray(TweetType)
 const tweetAudience = numberEnumToArray(TweetAudience)
 const mediaTypes = numberEnumToArray(MediaType)
-console.log('TweetType', tweetType)
 export const createTweetValidator = validate(
   checkSchema({
     type: {
@@ -104,4 +106,31 @@ export const createTweetValidator = validate(
       }
     }
   })
+)
+
+export const tweetIdValidator = validate(
+  checkSchema(
+    {
+      tweet_id: {
+        isMongoId: {
+          errorMessage: TWEETS_MESSAGES.INVALID_TWEET_ID
+        },
+        custom: {
+          options: async (value, { req }) => {
+            const tweet = await databaseService.tweets.findOne({
+              _id: new ObjectId(value)
+            })
+            if (!tweet) {
+              throw new ErrorWithStatus({
+                status: httpStatus.NOT_FOUND,
+                message: TWEETS_MESSAGES.TWEET_NOT_FOUND
+              })
+            }
+            return true
+          }
+        }
+      }
+    },
+    ['body', 'params']
+  )
 )
