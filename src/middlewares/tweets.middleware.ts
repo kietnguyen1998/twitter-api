@@ -112,11 +112,11 @@ export const tweetIdValidator = validate(
   checkSchema(
     {
       tweet_id: {
-        isMongoId: {
-          errorMessage: TWEETS_MESSAGES.INVALID_TWEET_ID
-        },
         custom: {
           options: async (value, { req }) => {
+            if (!ObjectId.isValid(value)) {
+              throw new ErrorWithStatus({ status: httpStatus.BAD_REQUEST, message: TWEETS_MESSAGES.INVALID_TWEET_ID })
+            }
             const tweet = await databaseService.tweets.findOne({
               _id: new ObjectId(value)
             })
