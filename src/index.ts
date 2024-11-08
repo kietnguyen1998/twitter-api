@@ -9,6 +9,7 @@ import argv from 'minimist'
 import { UPLOAD_IMAGE_DIR } from './constants/dir'
 import staticRouter from './routes/statisc.routes'
 import tweetsRouter from './routes/tweets.routes'
+import bookmarksRouter from './routes/bookmarks.routes'
 config()
 databaseService.connect().then(() => {
   databaseService.indexUsers()
@@ -28,6 +29,7 @@ app.use('/media', mediaRouter)
 // app.use('/media', express.static(UPLOAD_IMAGE_DIR))
 app.use('/static', staticRouter)
 app.use('/tweets', tweetsRouter)
+app.use('/bookmark', bookmarksRouter)
 app.use(dafaultErrorHandler)
 
 app.listen(port, () => {
