@@ -21,7 +21,7 @@ import {
 } from '~/models/requests/User.request'
 import { USERS_MESSAGES } from '~/constants/messages'
 import { ObjectId } from 'mongodb'
-import httpStatus from '~/constants/httpStatus'
+import HTTP_STATUS from '~/constants/httpStatus'
 import { UserVerifyStatus } from '~/constants/enum'
 import { pick } from 'lodash'
 
@@ -75,7 +75,7 @@ export const verifyEmailController = async (
   })
   // Nếu không tìm thấy user thì mình sẽ báo lỗi
   if (!user) {
-    return res.status(httpStatus.NOT_FOUND).json({
+    return res.status(HTTP_STATUS.NOT_FOUND).json({
       message: USERS_MESSAGES.USER_NOT_FOUND
     })
   }
@@ -99,7 +99,7 @@ export const resendVerifyEmailController = async (
   const { user_id } = req.decoded_authorization as TokenPayload
   const user = await databaseService.users.findOne({ _id: new ObjectId(user_id) })
   if (!user) {
-    return res.status(httpStatus.NOT_FOUND).json({
+    return res.status(HTTP_STATUS.NOT_FOUND).json({
       message: USERS_MESSAGES.USER_NOT_FOUND
     })
   }

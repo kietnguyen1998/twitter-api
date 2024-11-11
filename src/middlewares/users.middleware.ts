@@ -7,7 +7,7 @@ import databaseService from '~/services/database.services'
 import usersService from '~/services/users.services'
 import { validate } from '~/utils/validation'
 import { verifyToken } from '~/utils/jwt'
-import httpStatus from '~/constants/httpStatus'
+import HTTP_STATUS from '~/constants/httpStatus'
 import { JsonWebTokenError } from 'jsonwebtoken'
 import { capitalize } from 'lodash'
 import { ObjectId } from 'mongodb'
@@ -80,7 +80,7 @@ const forgotPasswordTokenSchema: ParamSchema = {
       if (!value) {
         throw new ErrorWithStatus({
           message: USERS_MESSAGES.FORGOT_PASSWORD_TOKEN_IS_REQUIRED,
-          status: httpStatus.UNAUTHORIZED
+          status: HTTP_STATUS.UNAUTHORIZED
         })
       }
       try {
@@ -94,13 +94,13 @@ const forgotPasswordTokenSchema: ParamSchema = {
         if (user === null) {
           throw new ErrorWithStatus({
             message: USERS_MESSAGES.USER_NOT_FOUND,
-            status: httpStatus.UNAUTHORIZED
+            status: HTTP_STATUS.UNAUTHORIZED
           })
         }
         if (user.forgot_password_token !== value) {
           throw new ErrorWithStatus({
             message: USERS_MESSAGES.INVALID_FORGOT_PASSWORD_TOKEN,
-            status: httpStatus.UNAUTHORIZED
+            status: HTTP_STATUS.UNAUTHORIZED
           })
         }
         req.decoded_forgot_password_token = decoded_forgot_password_token
@@ -108,7 +108,7 @@ const forgotPasswordTokenSchema: ParamSchema = {
         if (error instanceof JsonWebTokenError) {
           throw new ErrorWithStatus({
             message: capitalize(error.message),
-            status: httpStatus.UNAUTHORIZED
+            status: HTTP_STATUS.UNAUTHORIZED
           })
         }
         throw error
@@ -167,7 +167,7 @@ const UserIdSchema: ParamSchema = {
       if (!ObjectId.isValid(value)) {
         throw new ErrorWithStatus({
           message: USERS_MESSAGES.INVALID_USER_ID,
-          status: httpStatus.NOT_FOUND
+          status: HTTP_STATUS.NOT_FOUND
         })
       }
       const followed_user = await databaseService.users.findOne({
@@ -177,7 +177,7 @@ const UserIdSchema: ParamSchema = {
       if (followed_user === null) {
         throw new ErrorWithStatus({
           message: USERS_MESSAGES.USER_NOT_FOUND,
-          status: httpStatus.NOT_FOUND
+          status: HTTP_STATUS.NOT_FOUND
         })
       }
     }
@@ -279,7 +279,7 @@ export const accessTokenValidator = validate(
             if (!access_token) {
               throw new ErrorWithStatus({
                 message: USERS_MESSAGES.ACCESS_TOKEN_IS_REQUIRED,
-                status: httpStatus.UNAUTHORIZED
+                status: HTTP_STATUS.UNAUTHORIZED
               })
             }
             try {
@@ -291,7 +291,7 @@ export const accessTokenValidator = validate(
             } catch (err) {
               throw new ErrorWithStatus({
                 message: (err as JsonWebTokenError).message,
-                status: httpStatus.UNAUTHORIZED
+                status: HTTP_STATUS.UNAUTHORIZED
               })
             }
             return true
@@ -313,7 +313,7 @@ export const refreshTokenValidator = validate(
             if (!value) {
               throw new ErrorWithStatus({
                 message: USERS_MESSAGES.REFRESH_TOKEN_IS_REQUIRED,
-                status: httpStatus.UNAUTHORIZED
+                status: HTTP_STATUS.UNAUTHORIZED
               })
             }
             try {
@@ -324,7 +324,7 @@ export const refreshTokenValidator = validate(
               if (!refresh_token) {
                 throw new ErrorWithStatus({
                   message: USERS_MESSAGES.USED_REFRESH_TOKEN_OR_NOT_EXIST,
-                  status: httpStatus.UNAUTHORIZED
+                  status: HTTP_STATUS.UNAUTHORIZED
                 })
               }
               ;(req as Request).decoded_refresh_token = decoded_refresh_token
@@ -332,7 +332,7 @@ export const refreshTokenValidator = validate(
               if (err instanceof JsonWebTokenError) {
                 throw new ErrorWithStatus({
                   message: err.message,
-                  status: httpStatus.UNAUTHORIZED
+                  status: HTTP_STATUS.UNAUTHORIZED
                 })
               }
               throw err
@@ -356,7 +356,7 @@ export const emailVerifyTokenValidator = validate(
             if (!value) {
               throw new ErrorWithStatus({
                 message: USERS_MESSAGES.EMAIL_VERIFY_TOKEN_IS_REQUIRED,
-                status: httpStatus.UNAUTHORIZED
+                status: HTTP_STATUS.UNAUTHORIZED
               })
             }
             try {
@@ -369,7 +369,7 @@ export const emailVerifyTokenValidator = validate(
             } catch (error) {
               throw new ErrorWithStatus({
                 message: capitalize((error as JsonWebTokenError).message),
-                status: httpStatus.UNAUTHORIZED
+                status: HTTP_STATUS.UNAUTHORIZED
               })
             }
 
@@ -437,7 +437,7 @@ export const verifiedUserValidator = async (req: Request, res: Response, next: N
     next(
       new ErrorWithStatus({
         message: USERS_MESSAGES.USER_NOT_VERIFIED,
-        status: httpStatus.FORBIDDEN
+        status: HTTP_STATUS.FORBIDDEN
       })
     )
   }
@@ -554,7 +554,7 @@ export const changePasswordValidator = validate(
           const { user_id } = req.decoded_authorization as TokenPayload
           const user = await databaseService.users.findOne({ _id: new ObjectId(user_id) })
           if (!user) {
-            throw new ErrorWithStatus({ message: USERS_MESSAGES.USER_NOT_FOUND, status: httpStatus.NOT_FOUND })
+            throw new ErrorWithStatus({ message: USERS_MESSAGES.USER_NOT_FOUND, status: HTTP_STATUS.NOT_FOUND })
           }
 
           const { password } = user
@@ -562,7 +562,7 @@ export const changePasswordValidator = validate(
           if (!isMatch) {
             throw new ErrorWithStatus({
               message: USERS_MESSAGES.OLD_PASSWORD_NOT_MATCH,
-              status: httpStatus.UNAUTHORIZED
+              status: HTTP_STATUS.UNAUTHORIZED
             })
           }
         }
@@ -572,3 +572,12 @@ export const changePasswordValidator = validate(
     confirm_password: confirmPasswordSchema
   })
 )
+
+export const isUserLoggedInValidator = (middleware: (req: Request, res: Response, next: NextFunction) => void) => {
+  return (req: Request, res: Response, next: NextFunction) => {
+    if (req.headers.authorization) {
+      return middleware(req, res, next)
+    }
+    next()
+  }
+}

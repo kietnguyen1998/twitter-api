@@ -1,13 +1,16 @@
 import { ObjectId } from 'mongodb'
-import { MediaType, TweetAudience, TweetType } from './../constants/enum'
+import { MediaType, TweetAudience, TweetType, UserVerifyStatus } from './../constants/enum'
 import { checkSchema } from 'express-validator'
-import { TWEETS_MESSAGES } from '~/constants/messages'
+import { TWEETS_MESSAGES, USERS_MESSAGES } from '~/constants/messages'
 import { numberEnumToArray } from '~/utils/common'
 import { validate } from '~/utils/validation'
 import { isEmpty } from 'lodash'
 import databaseService from '~/services/database.services'
 import { ErrorWithStatus } from '~/models/Errors'
-import httpStatus from '~/constants/httpStatus'
+import HTTP_STATUS from '~/constants/httpStatus'
+import { NextFunction, Request, Response } from 'express'
+import Tweet from '~/models/schemas/Tweet.schema'
+import { wrapRequestHandler } from '~/utils/handlers'
 const tweetType = numberEnumToArray(TweetType)
 const tweetAudience = numberEnumToArray(TweetAudience)
 const mediaTypes = numberEnumToArray(MediaType)
@@ -115,17 +118,18 @@ export const tweetIdValidator = validate(
         custom: {
           options: async (value, { req }) => {
             if (!ObjectId.isValid(value)) {
-              throw new ErrorWithStatus({ status: httpStatus.BAD_REQUEST, message: TWEETS_MESSAGES.INVALID_TWEET_ID })
+              throw new ErrorWithStatus({ status: HTTP_STATUS.BAD_REQUEST, message: TWEETS_MESSAGES.INVALID_TWEET_ID })
             }
             const tweet = await databaseService.tweets.findOne({
               _id: new ObjectId(value)
             })
             if (!tweet) {
               throw new ErrorWithStatus({
-                status: httpStatus.NOT_FOUND,
+                status: HTTP_STATUS.NOT_FOUND,
                 message: TWEETS_MESSAGES.TWEET_NOT_FOUND
               })
             }
+            req.tweet = tweet
             return true
           }
         }
@@ -134,3 +138,38 @@ export const tweetIdValidator = validate(
     ['body', 'params']
   )
 )
+// Muốn sử dụng async await trong handler express thì phải có try catch
+// Nếu không dùng try catch thì phải dùng wrapRequestHandler
+export const audienceValidator = wrapRequestHandler(async (req: Request, res: Response, next: NextFunction) => {
+  const tweet = req.tweet as Tweet
+  if (tweet.audience === TweetAudience.TwitterCircle) {
+    // Kiểm tra người xem tweet này đã đăng nhập hay chưa
+    if (!req.decoded_authorization) {
+      throw new ErrorWithStatus({
+        status: HTTP_STATUS.UNAUTHORIZED,
+        message: USERS_MESSAGES.ACCESS_TOKEN_IS_REQUIRED
+      })
+    }
+    const author = await databaseService.users.findOne({
+      _id: new ObjectId(tweet.user_id)
+    })
+    // Kiểm tra tài khoản tác giả có ổn (bị khóa hay bị xóa chưa) không
+    if (!author || author.verify === UserVerifyStatus.Banned) {
+      throw new ErrorWithStatus({
+        status: HTTP_STATUS.NOT_FOUND,
+        message: USERS_MESSAGES.USER_NOT_FOUND
+      })
+    }
+    // Kiểm tra người xem tweet này có trong Twitter Circle của tác giả hay không
+    const { user_id } = req.decoded_authorization
+    const isInTwitterCircle = author.twitter_circle.some((user_circle_id) => user_circle_id.equals(user_id))
+    // Nếu bạn không phải là tác giả và không nằm trong twitter circle thì quăng lỗi
+    if (!author._id.equals(user_id) && !isInTwitterCircle) {
+      throw new ErrorWithStatus({
+        status: HTTP_STATUS.FORBIDDEN,
+        message: TWEETS_MESSAGES.TWEET_IS_NOT_PUBLIC
+      })
+    }
+  }
+  next()
+})

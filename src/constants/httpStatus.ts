@@ -1,4 +1,4 @@
-const httpStatus = {
+const HTTP_STATUS = {
   OK: 200,
   CREATED: 201,
   ACCEPTED: 202,
@@ -12,4 +12,4 @@ const httpStatus = {
   PARTIAL_CONTENT: 206
 } as const
 
-export default httpStatus
+export default HTTP_STATUS

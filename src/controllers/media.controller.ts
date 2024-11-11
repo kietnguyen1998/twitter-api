@@ -1,7 +1,7 @@
 import { NextFunction, Request, Response } from 'express'
 import path from 'path'
 import { UPLOAD_IMAGE_DIR, UPLOAD_VIDEO_DIR } from '~/constants/dir'
-import httpStatus from '~/constants/httpStatus'
+import HTTP_STATUS from '~/constants/httpStatus'
 import { USERS_MESSAGES } from '~/constants/messages'
 import mediaService from '~/services/media.services'
 import fs from 'fs'
@@ -32,7 +32,7 @@ export const serveVideoStreamController = async (req: Request, res: Response, ne
   const mime = (await import('mime')).default
   const range = req.headers.range
   if (!range) {
-    return res.status(httpStatus.BAD_REQUEST).send('Require Range Header')
+    return res.status(HTTP_STATUS.BAD_REQUEST).send('Require Range Header')
   }
   const { name } = req.params
   const videoPath = path.resolve(UPLOAD_VIDEO_DIR, name)
@@ -77,7 +77,7 @@ export const serveVideoStreamController = async (req: Request, res: Response, ne
     'Content-Length': contentLength,
     'Content-Type': contentType
   }
-  res.writeHead(httpStatus.PARTIAL_CONTENT, headers)
+  res.writeHead(HTTP_STATUS.PARTIAL_CONTENT, headers)
   const videoSteams = fs.createReadStream(videoPath, { start, end })
   videoSteams.pipe(res)
 }

@@ -9,7 +9,7 @@ import { ObjectId } from 'mongodb'
 import { config } from 'dotenv'
 import { USERS_MESSAGES } from '~/constants/messages'
 import { ErrorWithStatus } from '~/models/Errors'
-import httpStatus from '~/constants/httpStatus'
+import HTTP_STATUS from '~/constants/httpStatus'
 import Follower from '~/models/schemas/Follower.shema'
 config()
 class UsersService {
@@ -268,7 +268,7 @@ class UsersService {
     if (user === null) {
       throw new ErrorWithStatus({
         message: USERS_MESSAGES.USER_NOT_FOUND,
-        status: httpStatus.NOT_FOUND
+        status: HTTP_STATUS.NOT_FOUND
       })
     }
     return user
