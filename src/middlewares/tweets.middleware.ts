@@ -284,7 +284,6 @@ export const audienceValidator = wrapRequestHandler(async (req: Request, res: Re
   next()
 })
 
-
 export const getTweetChildrenValidator = validate(
   checkSchema(
     {
