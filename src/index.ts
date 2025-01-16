@@ -10,11 +10,13 @@ import { UPLOAD_IMAGE_DIR } from './constants/dir'
 import staticRouter from './routes/statisc.routes'
 import tweetsRouter from './routes/tweets.routes'
 import bookmarksRouter from './routes/bookmarks.routes'
+import searchRouter from './routes/search.routes'
 // import "~/utils/fake"
 config()
 databaseService.connect().then(() => {
   databaseService.indexUsers()
   databaseService.indexRefreshToken()
+  databaseService.indexTweets()
 })
 
 const app = express()
@@ -31,6 +33,7 @@ app.use('/media', mediaRouter)
 app.use('/static', staticRouter)
 app.use('/tweets', tweetsRouter)
 app.use('/bookmark', bookmarksRouter)
+app.use('/search', searchRouter)
 app.use(dafaultErrorHandler)
 
 app.listen(port, () => {
