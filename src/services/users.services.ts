@@ -11,6 +11,7 @@ import { USERS_MESSAGES } from '~/constants/messages'
 import { ErrorWithStatus } from '~/models/Errors'
 import HTTP_STATUS from '~/constants/httpStatus'
 import Follower from '~/models/schemas/Follower.shema'
+import { sendVerifyEmail } from '~/utils/email'
 config()
 class UsersService {
   private signAccessToken({ user_id, verify }: { user_id: string; verify: UserVerifyStatus }) {
@@ -96,6 +97,13 @@ class UsersService {
     )
 
     console.log('email_verify_token', email_verify_token)
+    sendVerifyEmail(
+      payload.email,
+      'verify email',
+      `
+      <p>Click <a href="${process.env.CLIENT_URL}/verify-email?token=${email_verify_token}">here</a></p>
+      `
+    )
     return { access_token, refresh_token }
   }
 
